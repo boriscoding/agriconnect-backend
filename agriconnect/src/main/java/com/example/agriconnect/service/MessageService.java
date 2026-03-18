@@ -23,4 +23,15 @@ public interface MessageService {
     String stockerFichier(MultipartFile file) throws IOException;
     // Tes autres méthodes...
     List<Utilisateur> findActiveContacts(Long id);
+    // Pour la modification
+    Message modifierMessage(Long id, String nouveauContenu);
+
+    // Pour le transfert (on peut réutiliser enregistrerMessageComplet,
+    // mais une méthode dédiée est plus propre)
+    Message transfererMessage(Long messageId, Long expId, Long destId);
+
+    // Pour récupérer tous les messages d'une conversation (déjà utilisée dans ton controller)
+    List<Message> findConversation(Long u1, Long u2);
+    Message save(Message message);
+    public Message getDernierMessageDiscussion(Long u1, Long u2) ;
 }

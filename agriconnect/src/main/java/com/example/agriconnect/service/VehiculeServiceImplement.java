@@ -4,10 +4,19 @@ import com.example.agriconnect.classes.Transporteur;
 import com.example.agriconnect.classes.Vehicule;
 import com.example.agriconnect.repository.TransporteurRepository;
 import com.example.agriconnect.repository.VehiculeRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
+
 @Service
 public class VehiculeServiceImplement implements VehiculeService {
 
@@ -22,11 +31,6 @@ public class VehiculeServiceImplement implements VehiculeService {
             throw new IllegalArgumentException("La charge maximale ne peut pas être négative");
         }
         return vehiculeRepository.save(vehicule);
-    }
-
-    @Override
-    public List<Vehicule> recupererTousLesVehicules() {
-        return vehiculeRepository.findAll();
     }
 
     @Override
@@ -64,5 +68,57 @@ public class VehiculeServiceImplement implements VehiculeService {
 
         // 4. On sauvegarde le tout
         return vehiculeRepository.save(vehicule);
+    }
+    @Override
+    public List<Vehicule> findAll() {
+        return vehiculeRepository.findAll(); // ✅ Correct
+    }
+
+    @Transactional
+    @Override
+    public Vehicule modifierVehicule(Long id, Vehicule details) {
+        return vehiculeRepository.findById(id).map(vehicule -> {
+            // Mise à jour des champs textuels et techniques
+            vehicule.setMarque(details.getMarque());
+            vehicule.setModel(details.getModel());
+            vehicule.setImmatriculation(details.getImmatriculation());
+            vehicule.setVoitureType(details.getVoitureType());
+            vehicule.setDescription(details.getDescription());
+            vehicule.setChargeMax(details.getChargeMax());
+
+            // On ne touche généralement pas à 'proprietaire' ni à 'dateEnregistrement'
+            // pour garder l'intégrité de l'historique.
+
+            return vehiculeRepository.save(vehicule);
+        }).orElseThrow(() -> new RuntimeException("Véhicule introuvable avec l'id : " + id));
+    }
+    @Transactional
+    public Vehicule enregistrerDirectement(Vehicule vehicule, Long transporteurId, MultipartFile file) throws IOException {
+        // 1. Récupérer le transporteur (le propriétaire)
+        Transporteur transporteur = transporteurRepository.findById(transporteurId)
+                .orElseThrow(() -> new RuntimeException("Transporteur non trouvé"));
+
+        // 2. Lier le propriétaire au véhicule
+        vehicule.setProprietaire(transporteur);
+
+        // 3. Gestion de l'image (si présente)
+        if (file != null && !file.isEmpty()) {
+            String uploadDir = "uploads/";
+            File directory = new File(uploadDir);
+            if (!directory.exists()) directory.mkdirs();
+
+            // Générer un nom unique
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            Path path = Paths.get(uploadDir + fileName);
+            Files.write(path, file.getBytes());
+
+            // On remplit les deux attributs de ton entité
+            vehicule.setPhoto(fileName);
+            vehicule.setMediaUrl(fileName);
+        }
+
+        // 4. Sauvegarde finale
+        return vehiculeRepository.save(vehicule);
+
     }
 }

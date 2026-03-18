@@ -5,7 +5,10 @@ import com.example.agriconnect.service.UtilisateurService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -45,14 +48,23 @@ public class UtilisateurController {
 
 
     // UNE SEULE méthode de mise à jour utilisant une Map pour la flexibilité
-    @PutMapping("/modifier/{id}")
-    public ResponseEntity<Utilisateur> update(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        try {
-            Utilisateur updatedUser = utilisateurService.modifierProfil(id, updates);
-            return ResponseEntity.ok(updatedUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
+    @PutMapping(value = "/modifier/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<Utilisateur> modifierProfil(
+            @PathVariable Long id,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestParam("nom") String nom,
+            @RequestParam("localisation") String localisation,
+            @RequestParam("sexe") String sexe,
+            @RequestParam("number") Integer number
+    ) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nom", nom);
+        updates.put("localisation", localisation);
+        updates.put("sexe", sexe);
+        updates.put("number", number);
 
+        // Appel au service avec gestion d'exception pour le fichier
+        Utilisateur updatedUser = utilisateurService.modifierProfilAvecImage(id, updates, file);
+        return ResponseEntity.ok(updatedUser);
+    }
 }

@@ -5,6 +5,10 @@ import com.example.agriconnect.classes.Utilisateur;
 import com.example.agriconnect.repository.MessageRepository;
 import com.example.agriconnect.repository.UtilisateurRepository; // Ajout important
 import lombok.RequiredArgsConstructor;
+// ✅ Utilisez cet import
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -93,5 +97,38 @@ public class MessageServiceImplement implements MessageService {
 
     public List<Message> findConversation(Long u1, Long u2) {
         return messageRepository.findConversation(u1, u2);
+    }
+    @Override
+    public Message modifierMessage(Long id, String nouveauContenu) {
+        Message msg = messageRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Message introuvable"));
+
+        msg.setContenu(nouveauContenu);
+        // Optionnel : msg.setModifie(true); // Si tu as ajouté ce champ dans ta classe Message
+
+        return messageRepository.save(msg); // Ici, le .save() vient du MessageRepository (JPA)
+    }
+
+    @Override
+    public Message transfererMessage(Long messageId, Long expId, Long destId) {
+        Message original = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message original introuvable"));
+
+        Message copie = new Message();
+        copie.setContenu(original.getContenu());
+        copie.setMediaUrl(original.getMediaUrl());
+        copie.setMediaType(original.getMediaType());
+
+        // On réutilise ta méthode existante pour gérer les liaisons Utilisateurs
+        return enregistrerMessageComplet(copie, expId, destId);
+    }
+    @Override
+    public Message save(Message message) {
+        return messageRepository.save(message); // repo est ton MessageRepository
+    }
+
+    public Message getDernierMessageDiscussion(Long u1, Long u2) {
+        List<Message> messages = messageRepository.findLastMessageBetween(u1, u2, PageRequest.of(0, 1));
+        return messages.isEmpty() ? null : messages.get(0);
     }
 }

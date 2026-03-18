@@ -5,10 +5,12 @@ import java.util.List;
 
 public interface VehiculeService {
     Vehicule enregistrerVehicule(Vehicule vehicule);
-    List<Vehicule> recupererTousLesVehicules();
     Vehicule trouverParId(Long id);
     void supprimerVehicule(Long id);
     List<Vehicule> trouverParTransporteur(Long transporteurId);
     // Ajoute cette signature de méthode
     Vehicule enregistrerVehiculeComplet(Vehicule vehicule, Long transporteurId);
+
+    Vehicule modifierVehicule(Long id, Vehicule vehiculeDetails);
+    List<Vehicule> findAll();
 }

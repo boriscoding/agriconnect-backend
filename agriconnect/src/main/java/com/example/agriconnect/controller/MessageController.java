@@ -95,11 +95,7 @@ public class MessageController {
     }
 
     // --- 🗑️ SUPPRIMER UN MESSAGE ---
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimerMessage(@PathVariable Long id) {
-        messageService.supprimerMessage(id);
-        return ResponseEntity.noContent().build();
-    }
+
 
     @GetMapping("/contacts/{id}")
     public ResponseEntity<List<Utilisateur>> getContacts(@PathVariable Long id) {
@@ -114,5 +110,68 @@ public class MessageController {
 
         List<Message> messages = messageService.findConversation(u1, u2);
         return ResponseEntity.ok(messages);
+    }
+    // --- 🗑️ SUPPRIMER UN MESSAGE (Temps réel) ---
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> supprimerMessage(@PathVariable Long id) {
+        messageService.supprimerMessage(id);
+
+        // Notification temps réel : on envoie l'ID du message supprimé
+        // Ton Angular devra filtrer sa liste locale pour retirer ce message
+        messagingTemplate.convertAndSend("/topic/messages/delete", id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // --- ✏️ MODIFIER UN MESSAGE ---
+    @PutMapping("/modifier/{id}")
+    public ResponseEntity<Message> modifierMessage(@PathVariable Long id, @RequestBody String nouveauContenu) {
+        Message msg = messageService.getMessageById(id);
+        if (msg == null) return ResponseEntity.notFound().build();
+
+        msg.setContenu(nouveauContenu);
+        // On peut ajouter un flag boolean 'modifie' dans ta classe Message si tu veux afficher "(modifié)"
+        Message sauvegarde = messageService.save(msg);
+
+        // Notification temps réel : on envoie le message mis à jour
+        messagingTemplate.convertAndSend("/topic/messages/update", sauvegarde);
+
+        return ResponseEntity.ok(sauvegarde);
+    }
+
+    // --- 🚀 TRANSFÉRER UN MESSAGE ---
+    @PostMapping("/transferer")
+    public ResponseEntity<Message> transfererMessage(
+            @RequestParam("messageId") Long messageId,
+            @RequestParam("expediteurId") Long expediteurId,
+            @RequestParam("destinataireId") Long destinataireId) {
+
+        Message original = messageService.getMessageById(messageId);
+        if (original == null) return ResponseEntity.notFound().build();
+
+        // On crée une copie pour le nouveau destinataire
+        Message copie = new Message();
+        copie.setContenu(original.getContenu());
+        copie.setMediaUrl(original.getMediaUrl());
+        copie.setMediaType(original.getMediaType());
+
+        Message sauvegarde = messageService.enregistrerMessageComplet(copie, expediteurId, destinataireId);
+
+        // Notification temps réel au nouveau destinataire
+        messagingTemplate.convertAndSend("/topic/messages", sauvegarde);
+
+        return ResponseEntity.ok(sauvegarde);
+    }
+
+    @GetMapping("/dernier-echange")
+    public ResponseEntity<Message> getDernierMessage(@RequestParam Long u1, @RequestParam Long u2) {
+        // Appel de ta fonction du service
+        Message dernierMsg = messageService.getDernierMessageDiscussion(u1, u2);
+
+        if (dernierMsg == null) {
+            return ResponseEntity.noContent().build(); // 204 si aucun message
+        }
+
+        return ResponseEntity.ok(dernierMsg); // 200 avec le message
     }
 }

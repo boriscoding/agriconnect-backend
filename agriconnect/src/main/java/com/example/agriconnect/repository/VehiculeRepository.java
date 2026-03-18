@@ -13,4 +13,5 @@ public interface VehiculeRepository extends JpaRepository<Vehicule, Long> {
 
     // Exemple : Trouver les véhicules par type (Camion, etc.)
     List<Vehicule> findByVoitureType(String type);
+
 }

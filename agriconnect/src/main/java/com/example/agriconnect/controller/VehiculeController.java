@@ -37,12 +37,6 @@ public class VehiculeController {
 
     private final String UPLOAD_DIR = "uploads/";
 
-    // ✅ AJOUT : Route par défaut pour corriger l'erreur 404 de ton Angular
-    // Quand tu fais http://ip:8080/api/vehicules, c'est cette méthode qui répond
-    @GetMapping
-    public ResponseEntity<List<Vehicule>> getAll() {
-        return new ResponseEntity<>(vehiculeService.recupererTousLesVehicules(), HttpStatus.OK);
-    }
 
     // --- 1. ENREGISTRER UN VÉHICULE ---
     @PostMapping("/enregistrer")
@@ -90,7 +84,7 @@ public class VehiculeController {
     // Route conservée pour la compatibilité
     @GetMapping("/liste")
     public ResponseEntity<List<Vehicule>> listerTous() {
-        return getAll();
+        return ResponseEntity.ok(vehiculeService.findAll()); // Utilise directement le service
     }
 
     // --- 3. TROUVER UN VÉHICULE PAR SON ID ---
@@ -120,5 +114,17 @@ public class VehiculeController {
     public ResponseEntity<List<Vehicule>> listerParTransporteur(@PathVariable("id") Long id) {
         List<Vehicule> vehicules = vehiculeService.trouverParTransporteur(id);
         return new ResponseEntity<>(vehicules, HttpStatus.OK);
+    }
+    @PutMapping("/modifier/{id}")
+    public ResponseEntity<Vehicule> modifier(
+            @PathVariable Long id,
+            @RequestBody Vehicule vehiculeDetails
+    ) {
+        Vehicule updatedVehicule = vehiculeService.modifierVehicule(id, vehiculeDetails);
+        return ResponseEntity.ok(updatedVehicule);
+    }
+    @GetMapping("/toutes")
+    public List<Vehicule> getAllVehicules() {
+        return vehiculeService.findAll();
     }
 }
