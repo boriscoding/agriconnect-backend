@@ -1,4 +1,4 @@
-package com.example.agriconnect.classes;
+package com.example.agriconnect.dto;
 
 import java.time.LocalDate;
 

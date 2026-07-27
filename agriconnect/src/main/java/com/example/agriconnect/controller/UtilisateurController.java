@@ -22,7 +22,10 @@ import java.util.Map;
                 "http://192.168.226.1:4200",
                 "http://10.177.225.196:4200",
                 "http://10.177.225.196:4200/",
-                "http://10.101.75.196:4200/"
+                "http://10.101.75.196:4200/",
+                "https://unsacked-improvisationally-suanne.ngrok-free.dev",
+                "https://agrilinkbycam.netlify.app/"
+
         },
         allowCredentials = "true"
 )
@@ -66,5 +69,20 @@ public class UtilisateurController {
         // Appel au service avec gestion d'exception pour le fichier
         Utilisateur updatedUser = utilisateurService.modifierProfilAvecImage(id, updates, file);
         return ResponseEntity.ok(updatedUser);
+    }
+    // Ajoute ceci dans ton UtilisateurController.java
+    @GetMapping("/search")
+    public ResponseEntity<Utilisateur> chercherParEmail(@RequestParam("email") String email) {
+        System.out.println("Recherche de l'utilisateur avec l'email : " + email);
+
+        return utilisateurService.findByEmail(email) // Assure-toi que cette méthode existe dans ton Service
+                .map(user -> {
+                    System.out.println("Utilisateur trouvé : " + user.getNom());
+                    return ResponseEntity.ok(user);
+                })
+                .orElseGet(() -> {
+                    System.out.println("Email " + email + " non trouvé.");
+                    return ResponseEntity.notFound().build();
+                });
     }
 }

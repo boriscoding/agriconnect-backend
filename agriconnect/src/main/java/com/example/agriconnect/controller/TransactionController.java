@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/transactions")
+@RequestMapping("/api/transactions") // ✅ Ajout de /api pour correspondre à tes appels Angular
 @CrossOrigin(
         origins = {
                 "http://localhost:4200",
@@ -16,8 +16,10 @@ import java.util.Map;
                 "http://192.168.197.1:4200",
                 "http://192.168.226.1:4200",
                 "http://10.177.225.196:4200",
-                "http://10.177.225.196:4200/",
-                "http://10.101.75.196:4200/"
+                "http://10.101.75.196:4200",
+                "https://unsacked-improvisationally-suanne.ngrok-free.dev",
+                "https://agrilinkbycam.netlify.app/"
+
         },
         allowCredentials = "true"
 )
@@ -25,10 +27,11 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    // Constructeur propre
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
+
+
 
     @PostMapping
     public Transaction create(@RequestBody Transaction transaction) {
@@ -53,6 +56,12 @@ public class TransactionController {
         String arrivee = payload.get("villeArrivee").toString();
 
         return transactionService.creerGroupage(acheteurId, colisIds, depart, arrivee);
+    }
+    @GetMapping("/trouver-trajets")
+    public List<Transaction> trouverTrajets(
+            @RequestParam String ville,
+            @RequestParam Double poids) {
+        return transactionService.rechercherTrajets(ville, poids);
     }
 
     @DeleteMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.example.agriconnect.service;
 
+import aj.org.objectweb.asm.commons.Remapper;
 import com.example.agriconnect.classes.Producteur;
 import com.example.agriconnect.classes.Transporteur;
 import com.example.agriconnect.classes.Utilisateur;
@@ -122,5 +123,14 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                 t.setCapaciteMax(Double.valueOf(updates.get("capaciteCharge").toString()));
             }
         }
+    }
+    @Override
+    public Optional<Utilisateur> findByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        // On utilise le repository pour la requête SQL
+        // .toLowerCase() ou une méthode IgnoreCase est recommandée pour éviter les erreurs de saisie
+        return utilisateurRepository.findByEmailIgnoreCase(email.trim());
     }
 }

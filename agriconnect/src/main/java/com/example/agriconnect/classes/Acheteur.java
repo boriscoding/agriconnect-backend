@@ -1,7 +1,7 @@
 package com.example.agriconnect.classes;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -11,7 +11,6 @@ import lombok.Setter;
 
 import java.util.List;
 
-
 @Entity
 @Getter @Setter
 @Table(name = "acheteurs")
@@ -20,26 +19,15 @@ import java.util.List;
         property = "id")
 public class Acheteur extends Utilisateur {
 
-
     private String adresseLivraison;
 
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
-
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
-
-    public String getAdresseLivraison() {
-        return adresseLivraison;
-    }
-
-    public void setAdresseLivraison(String adresseLivraison) {
-        this.adresseLivraison = adresseLivraison;
-    }
-
+    // ✅ CORRECTION : @JsonManagedReference remplacé par @JsonIgnore
+    // @JsonManagedReference exige un @JsonBackReference dans Transaction.java
+    // qui est absent → Jackson refuse de désérialiser Acheteur en JSON
+    // → Spring répond 415 sur le endpoint /login qui utilise @RequestBody
+    // @JsonIgnore est plus simple : on ignore juste les transactions
+    // lors de la sérialisation/désérialisation (évite aussi les boucles infinies)
+    @JsonIgnore
     @OneToMany(mappedBy = "acheteur")
-    @JsonManagedReference(value = "acheteur-transactions") // <--- Doit correspondre à Transaction
     private List<Transaction> transactions;
 }

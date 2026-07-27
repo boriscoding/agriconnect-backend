@@ -39,4 +39,8 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "transporteur_id")
     private Transporteur transporteur; // <--- AJOUTE CECI
+    @ManyToOne
+    @JoinColumn(name = "vehicule_id")
+    private Vehicule vehicule; // <--- Vérifie que ce nom est EXACTEMENT "vehicule"
+    private Double poidsActuel = 0.0; // À mettre à jour à chaque ajout de colis
 }

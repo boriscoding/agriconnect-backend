@@ -18,11 +18,6 @@ public class TransactionServiceImplement implements TransactionService {
     private final AcheteurRepository acheteurRepository;
 
     @Override
-    public Transaction create(Transaction transaction) {
-        return transactionRepository.save(transaction);
-    }
-
-    @Override
     public List<Transaction> findAll() {
         return transactionRepository.findAll();
     }
@@ -88,5 +83,19 @@ public class TransactionServiceImplement implements TransactionService {
     public Transaction getByReference(String reference) {
         // Assure-toi que cette méthode existe dans TransactionRepository
         return null;
+    }
+//@Override
+//    public List<Transaction> rechercherTransactionsPourOffre(String ville, Double poids) {
+//        return transactionRepository.trouverTrajetsDisponibles(ville, poids);
+//    }
+    // Dans TransactionService.java
+    public List<Transaction> rechercherTrajets(String ville, Double poids) {
+        return transactionRepository.rechercherParVilleArrivee(ville, poids);
+    }
+    @Override
+    public Transaction create(Transaction transaction) {
+        transaction.setStatut("WAITING_FOR_DRIVER"); // Statut spécial si aucun chauffeur n'est choisi
+        transaction.setDate(LocalDate.now());
+        return transactionRepository.save(transaction);
     }
 }

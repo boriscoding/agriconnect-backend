@@ -24,4 +24,6 @@ public interface TransactionService {
 
     // Trouver une transaction par sa référence unique
     Transaction getByReference(String reference);
+//    public List<Transaction> rechercherTransactionsPourOffre(String ville, Double poids);
+    List<Transaction> rechercherTrajets(String ville, Double poids);
 }

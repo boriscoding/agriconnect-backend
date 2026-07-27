@@ -41,4 +41,16 @@ public class Colis {
     @JoinColumn(name = "transaction_id")
     @JsonIgnore // Empêche de remonter vers la transaction
     private Transaction transaction;
+    // ... id, poids, dimension ...
+    private String nom; // Pour identifier le colis (ex: "Livraison Maïs Douala")
+
+    @OneToMany(mappedBy = "colis", cascade = CascadeType.ALL)
+    private java.util.List<Offre> offres = new java.util.ArrayList<>();
+
+    // Pour faciliter le calcul automatique
+    public void calculerPoidsTotal() {
+        this.poids = offres.stream()
+                .mapToDouble(o -> o.getQuantiteProduit() != null ? o.getQuantiteProduit() : 0.0)
+                .sum();
+    }
 }

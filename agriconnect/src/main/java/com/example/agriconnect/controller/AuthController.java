@@ -20,7 +20,10 @@ import java.util.Map;
                 "http://192.168.226.1:4200",
                 "http://10.177.225.196:4200",
                 "http://10.177.225.196:4200/",
-                "http://10.101.75.196:4200/"
+                "http://10.101.75.196:4200/" ,
+                "https://unsacked-improvisationally-suanne.ngrok-free.dev",
+                "https://agrilinkbycam.netlify.app/"
+
         },
         allowCredentials = "true"
 )

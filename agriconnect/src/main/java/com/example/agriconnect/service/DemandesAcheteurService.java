@@ -10,4 +10,5 @@ public interface DemandesAcheteurService {
     DemandesAcheteur update(Long id, DemandesAcheteur demande);
     void delete(Long id);
     List<DemandesAcheteur> findByAcheteurId(Long acheteurId);
+    public DemandesAcheteur creerDemandeDepuisParams(String libelle, double quantite, Long acheteurId, Long offreId);
 }

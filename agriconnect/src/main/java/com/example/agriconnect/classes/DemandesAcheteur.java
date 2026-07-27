@@ -17,7 +17,7 @@ public class DemandesAcheteur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String libeller ;
     private double quantite_c; // La quantité que l'acheteur veut (ex: 10 sacs)
     private  String statut ;
     @ManyToOne

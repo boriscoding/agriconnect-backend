@@ -18,4 +18,5 @@ public interface DemandesAcheteurRepository extends JpaRepository<DemandesAchete
      * Optionnel : Trouver les demandes par statut (ex: "PENDING", "VALIDATED")
      */
     List<DemandesAcheteur> findByStatut(String statut);
+
 }

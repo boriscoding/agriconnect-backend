@@ -1,4 +1,5 @@
 package com.example.agriconnect.service;
+import aj.org.objectweb.asm.commons.Remapper;
 import com.example.agriconnect.classes.Utilisateur;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,4 +14,5 @@ public interface UtilisateurService {
     public Optional<Utilisateur> findById(Long id);
     public Utilisateur modifierProfilAvecImage(Long id, Map<String, Object> updates, MultipartFile file) ;
 
-    }
+    public Optional<Utilisateur> findByEmail(String email);
+}

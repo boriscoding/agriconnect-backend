@@ -1,12 +1,15 @@
 package com.example.agriconnect.controller;
 
 import com.example.agriconnect.classes.Producteur;
-import com.example.agriconnect.repository.ProducteurRepository;
 import com.example.agriconnect.service.ProducteurService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/producteurs")
@@ -18,53 +21,74 @@ import java.util.List;
                 "http://192.168.197.1:4200",
                 "http://192.168.226.1:4200",
                 "http://10.177.225.196:4200",
-                "http://10.177.225.196:4200/",
-                "http://10.101.75.196:4200/"
+                "https://unsacked-improvisationally-suanne.ngrok-free.dev",
+                "https://agrilinkbycam.netlify.app/"
+
         },
         allowCredentials = "true"
 )
 public class ProducteurController {
+
     private final ProducteurService producteurService;
 
     public ProducteurController(ProducteurService producteurService) {
         this.producteurService = producteurService;
     }
-    // --- NOUVELLE MÉTHODE DE CONNEXION ---
+
+    // --- AUTHENTIFICATION ---
+    // Gardé en @RequestBody car Angular envoie généralement du JSON pour le login simple
     @PostMapping("/login")
     public Producteur login(@RequestBody Producteur credentials) {
-        // On cherche le producteur par email et password via le service
         return producteurService.findByEmailAndPassword(credentials.getEmail(), credentials.getPassword());
     }
-    // CREATE (Inscription)
-    @PostMapping
-    public Producteur create(@RequestBody Producteur producteur) {
 
+    // --- CRUD DE BASE ---
+
+    // ✅ CORRECTION : Utilisation de @ModelAttribute et spécification du type de contenu
+    // Cela permet de recevoir les données envoyées via FormData par Angular
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Producteur create(@ModelAttribute Producteur producteur) {
         return producteurService.create(producteur);
     }
 
-    // READ ALL
     @GetMapping
     public List<Producteur> getAll() {
         return producteurService.findAll();
     }
 
-    // READ ONE
     @GetMapping("/{id}")
     public Producteur getById(@PathVariable Long id) {
         return producteurService.findById(id);
     }
 
-    // UPDATE
-    @PutMapping("/{id}")
-    public Producteur update(
-            @PathVariable Long id,
-            @RequestBody Producteur producteur) {
-        return producteurService.update(id, producteur);
-    }
-
-    // DELETE
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         producteurService.delete(id);
+    }
+
+    // --- MISE À JOUR DU PROFIL (Avec Image) ---
+    @PutMapping(value = "/modifier/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Producteur> updateProducteur(
+            @PathVariable Long id,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestParam("nom") String nom,
+            @RequestParam("email") String email,
+            @RequestParam("localisation") String localisation,
+            @RequestParam("sexe") String sexe,
+            @RequestParam("number") Integer number,
+            @RequestParam(value = "typeProduit", required = false) String typeProduit,
+            @RequestParam(value = "surfaceExploitation", required = false) Double surfaceExploitation
+    ) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nom", nom);
+        updates.put("email", email);
+        updates.put("localisation", localisation);
+        updates.put("sexe", sexe);
+        updates.put("number", number);
+        updates.put("typeProduit", typeProduit);
+        updates.put("surfaceExploitation", surfaceExploitation);
+
+        Producteur updated = producteurService.modifierProfilAvecImage(id, updates, file);
+        return ResponseEntity.ok(updated);
     }
 }

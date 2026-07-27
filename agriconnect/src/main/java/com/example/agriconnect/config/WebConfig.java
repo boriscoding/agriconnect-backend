@@ -20,7 +20,10 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://192.168.197.1:4200",
                         "http://192.168.226.1:4200",
                         "http://10.177.225.196:4200",
-                        "http://10.101.75.196:4200/"
+                        "http://10.101.75.196:4200/",
+                        "https://unsacked-improvisationally-suanne.ngrok-free.dev",
+                        "https://agrilinkbycam.netlify.app/"
+
 
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
@@ -31,12 +34,20 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // On utilise Paths pour que Java gère proprement les espaces et les parenthèses
-        String uploadPath = "C:/Users/User/Documents/agriconnect (1)/uploads/";
+        // Détecte si on est sous Windows ou sur un serveur Linux (ex: Render/Cloud)
+        String os = System.getProperty("os.name").toLowerCase();
+        String uploadPath;
+
+        if (os.contains("win")) {
+            // Chemin pour votre PC Windows en local
+            uploadPath = "C:/Users/User/Documents/agriconnect (1)/uploads/";
+        } else {
+            // Chemin par défaut pour un serveur Linux (production)
+            uploadPath = "./uploads/";
+        }
 
         registry.addResourceHandler("/uploads/**")
-                // On ajoute bien "file:/" devant le chemin absolu
                 .addResourceLocations("file:" + uploadPath)
-                .setCachePeriod(0); // Désactive le cache pour voir les changements immédiatement
+                .setCachePeriod(0);
     }
 }

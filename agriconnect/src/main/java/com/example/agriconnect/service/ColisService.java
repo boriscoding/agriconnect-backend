@@ -14,4 +14,5 @@ public interface ColisService {
     Colis updateColis(Long id, Colis colis);
 
     void deleteColis(Long id);
+    public Colis traiterCommandeOffre(com.example.agriconnect.dto.CommandeOffreDTO dto);
 }

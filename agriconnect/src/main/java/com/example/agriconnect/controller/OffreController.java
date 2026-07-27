@@ -1,20 +1,18 @@
 package com.example.agriconnect.controller;
 
 import com.example.agriconnect.classes.Offre;
+import com.example.agriconnect.repository.OffreRepository; // AJOUT : Import du repository
 import com.example.agriconnect.service.OffreService;
+import com.example.agriconnect.dto.CommandeRequest; // AJOUT : Crée cette classe DTO
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional; // AJOUT : Import transaction
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/offres")
@@ -26,8 +24,10 @@ import java.util.UUID;
                 "http://192.168.197.1:4200",
                 "http://192.168.226.1:4200",
                 "http://10.177.225.196:4200",
-                "http://10.177.225.196:4200/",
-                "http://10.101.75.196:4200/"
+                "http://10.101.75.196:4200",
+                "https://unsacked-improvisationally-suanne.ngrok-free.dev",
+                "https://agrilinkbycam.netlify.app/"
+
         },
         allowCredentials = "true"
 )
@@ -35,6 +35,7 @@ import java.util.UUID;
 public class OffreController {
 
     private final OffreService service;
+    private final OffreRepository offreRepository; // AJOUT : Injection nécessaire pour la méthode commander
 
     @PostMapping("/publier")
     public ResponseEntity<Offre> creer(
@@ -50,7 +51,6 @@ public class OffreController {
             @RequestParam("producteurId") Long producteurId
     ) throws IOException {
 
-        // 1. On crée l'objet et on remplit les champs texte
         Offre offre = new Offre();
         offre.setTitre(titre);
         offre.setNproduit(nomProduit);
@@ -58,14 +58,13 @@ public class OffreController {
         offre.setDescription(description);
         offre.setPrixUnitaire(prixUnitaire);
         offre.setQuantiteProduit(quantiteProduit);
+        // Initialiser la quantité restante à la quantité totale lors de la création
+        offre.setQuantiteRestante(quantiteProduit);
         offre.setLieuProduction(lieuProduction);
         offre.setStatut(statut);
         offre.setDatePublication(LocalDate.now());
 
-        // 2. ON LAISSE LE SERVICE TOUT FAIRE (Gestion image + liaison producteur + Save)
-        // Le service s'occupera du UUID et de Files.write
         Offre savedOffre = service.enregistrerDirectement(offre, producteurId, file);
-
         return ResponseEntity.ok(savedOffre);
     }
 
@@ -73,21 +72,43 @@ public class OffreController {
     public List<Offre> getAllOffres() {
         return service.recupererToutesLesOffres();
     }
-    // --- SUPPRIMER UNE OFFRE ---
+
     @DeleteMapping("/supprimer/{id}")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         service.supprimerOffre(id);
         return ResponseEntity.ok().build();
     }
 
-    // --- MODIFIER UNE OFFRE ---
     @PutMapping("/modifier/{id}")
-    public ResponseEntity<Offre> modifier(
-            @PathVariable Long id,
-            @RequestBody Offre offreDetails
-    ) {
-        // On passe l'ID et l'objet contenant les nouvelles infos au service
+    public ResponseEntity<Offre> modifier(@PathVariable Long id, @RequestBody Offre offreDetails) {
         Offre updatedOffre = service.modifierOffre(id, offreDetails);
         return ResponseEntity.ok(updatedOffre);
+    }
+
+    @PostMapping("/commander")
+    @Transactional // Pour s'assurer que si la mise à jour échoue, rien n'est déduit
+    public ResponseEntity<?> finaliserCommande(@RequestBody CommandeRequest request) {
+        try {
+            // 1. Récupérer l'offre via le repository injecté
+            Offre offre = offreRepository.findById(request.getOffreId())
+                    .orElseThrow(() -> new RuntimeException("Offre non trouvée"));
+
+            // 2. Vérification du stock
+            if (offre.getQuantiteRestante() == null) {
+                offre.setQuantiteRestante(offre.getQuantiteProduit());
+            }
+
+            if (offre.getQuantiteRestante() < request.getQuantite()) {
+                return ResponseEntity.badRequest().body("Stock insuffisant. Disponible: " + offre.getQuantiteRestante());
+            }
+
+            // 3. Mise à jour de la quantité restante
+            offre.setQuantiteRestante(offre.getQuantiteRestante() - request.getQuantite());
+            offreRepository.save(offre);
+
+            return ResponseEntity.ok().body("{\"message\": \"Commande validée avec succès\"}");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur serveur : " + e.getMessage());
+        }
     }
 }
