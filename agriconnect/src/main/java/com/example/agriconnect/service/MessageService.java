@@ -2,6 +2,7 @@ package com.example.agriconnect.service;
 
 
 import com.example.agriconnect.classes.Message;
+import com.example.agriconnect.classes.PartageDiscussion;
 import com.example.agriconnect.classes.Utilisateur;
 import com.example.agriconnect.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,4 +35,8 @@ public interface MessageService {
     List<Message> findConversation(Long u1, Long u2);
     Message save(Message message);
     public Message getDernierMessageDiscussion(Long u1, Long u2) ;
+    // 👇 NOUVELLES MÉTHODES POUR LE PARTAGE 👇
+    PartageDiscussion creerPartage(PartageDiscussion partage);
+    PartageDiscussion getPartageActif(Long initiateurId, Long beneficiaireId, Long tiersId);
+
 }

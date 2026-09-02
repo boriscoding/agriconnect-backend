@@ -1,8 +1,10 @@
 package com.example.agriconnect.service;
 
 import com.example.agriconnect.classes.Message;
+import com.example.agriconnect.classes.PartageDiscussion;
 import com.example.agriconnect.classes.Utilisateur;
 import com.example.agriconnect.repository.MessageRepository;
+import com.example.agriconnect.repository.PartageDiscussionRepository;
 import com.example.agriconnect.repository.UtilisateurRepository; // Ajout important
 import lombok.RequiredArgsConstructor;
 // ✅ Utilisez cet import
@@ -21,6 +23,7 @@ public class MessageServiceImplement implements MessageService {
 
     private final MessageRepository messageRepository;
     private final UtilisateurRepository utilisateurRepository; // Pour récupérer les vrais Utilisateurs
+    private final PartageDiscussionRepository partageDiscussionRepository; // NOUVEAU
 
     @Override
     public Message envoyerMessage(Message message) {
@@ -130,5 +133,15 @@ public class MessageServiceImplement implements MessageService {
     public Message getDernierMessageDiscussion(Long u1, Long u2) {
         List<Message> messages = messageRepository.findLastMessageBetween(u1, u2, PageRequest.of(0, 1));
         return messages.isEmpty() ? null : messages.get(0);
+    }
+    // 👇 NOUVELLES IMPLÉMENTATIONS POUR LE PARTAGE 👇
+    @Override
+    public PartageDiscussion creerPartage(PartageDiscussion partage) {
+        return partageDiscussionRepository.save(partage);
+    }
+
+    @Override
+    public PartageDiscussion getPartageActif(Long initiateurId, Long beneficiaireId, Long tiersId) {
+        return partageDiscussionRepository.findActif(initiateurId, beneficiaireId, tiersId);
     }
 }
