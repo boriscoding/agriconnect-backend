@@ -36,10 +36,15 @@ public class ProducteurController {
     }
 
     // --- AUTHENTIFICATION ---
-    // Gardé en @RequestBody car Angular envoie généralement du JSON pour le login simple
+    // ⚠️ Corrigé : renvoyait un 200 avec un corps vide en cas d'échec, ce qui
+    // faisait afficher côté Angular un message trompeur ("données incomplètes"
+    // au lieu de "email ou mot de passe incorrect"). Maintenant un vrai 401,
+    // comme AcheteurController le fait déjà.
     @PostMapping("/login")
-    public Producteur login(@RequestBody Producteur credentials) {
-        return producteurService.findByEmailAndPassword(credentials.getEmail(), credentials.getPassword());
+    public ResponseEntity<Producteur> login(@RequestBody Producteur credentials) {
+        Producteur producteur = producteurService.findByEmailAndPassword(
+                credentials.getEmail(), credentials.getPassword());
+        return (producteur != null) ? ResponseEntity.ok(producteur) : ResponseEntity.status(401).build();
     }
 
     // --- CRUD DE BASE ---

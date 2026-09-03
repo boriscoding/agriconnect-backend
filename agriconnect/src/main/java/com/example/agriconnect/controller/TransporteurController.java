@@ -17,6 +17,9 @@ import java.util.Map;
         origins = {
                 "http://localhost:4200",
                 "http://172.27.208.1:4200",
+                "http://192.168.56.1:4200",
+                "http://192.168.197.1:4200",
+                "http://192.168.226.1:4200",
                 "http://10.177.225.196:4200",
                 "https://unsacked-improvisationally-suanne.ngrok-free.dev",
                 "https://agrilinkbycam.netlify.app"
@@ -39,9 +42,13 @@ public class TransporteurController {
     }
 
     // --- CONNEXION ---
+    // ⚠️ Corrigé : renvoyait un 200 avec un corps vide en cas d'échec (même
+    // souci que ProducteurController). Maintenant un vrai 401.
     @PostMapping("/login")
-    public Transporteur login(@RequestBody Transporteur credentials) {
-        return transporteurService.findByEmailAndPassword(credentials.getEmail(), credentials.getPassword());
+    public ResponseEntity<Transporteur> login(@RequestBody Transporteur credentials) {
+        Transporteur transporteur = transporteurService.findByEmailAndPassword(
+                credentials.getEmail(), credentials.getPassword());
+        return (transporteur != null) ? ResponseEntity.ok(transporteur) : ResponseEntity.status(401).build();
     }
 
     // --- MISE À JOUR DU PROFIL (Avec Image) ---
